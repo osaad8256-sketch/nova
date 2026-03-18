@@ -1,96 +1,48 @@
-const readline = require('readline-sync');
+const readline = require("readline-sync");
 
-// بيانات الأشخاص
 let people = [];
 
-// ----------- Functions -----------
-function addPerson() {
-  console.log("\n--- Add a Person ---");
+// إدخال 10 أشخاص
+for (let i = 0; i < 10; i++) {
+  console.log(`\nEnter person ${i + 1}`);
+
+  const id = i + 1;
   const firstName = readline.question("First Name: ");
   const lastName = readline.question("Last Name: ");
-  const age = parseInt(readline.question("Age: "));
+  const age = readline.questionInt("Age: ");
   const city = readline.question("City: ");
-  const id = people.length ? people[people.length - 1].id + 1 : 1;
+
   people.push({ id, firstName, lastName, age, city });
-  console.log("✅ Person added successfully!");
 }
 
-function viewAllPeople() {
-  if (people.length === 0) {
-    console.log("No people found.");
-    return;
-  }
-  console.log("\nID | Name           | Age | City");
-  console.log("-------------------------------");
-  people.forEach(p => {
-    console.log(
-      `${p.id.toString().padEnd(3)}| ${p.firstName} ${p.lastName}`.padEnd(15) +
-      ` | ${p.age.toString().padEnd(3)} | ${p.city}`
-    );
-  });
+// Menu
+const choice = readline.question(
+  "\n1- View All\n2- View One\n3- Delete All\n4- Delete One\n5- Full Name\nChoose: "
+);
+
+if (choice == 1) {
+  console.log(people);
 }
 
-function viewPersonById() {
-  const id = parseInt(readline.question("Enter ID of the person: "));
-  const p = people.find(p => p.id === id);
-  if (!p) {
-    console.log("❌ Person not found.");
-    return;
-  }
-  console.log(`\nID: ${p.id}\nFull Name: ${p.firstName} ${p.lastName}\nAge: ${p.age}\nCity: ${p.city}`);
+if (choice == 2) {
+  const id = readline.questionInt("Enter ID: ");
+  const person = people.find(p => p.id === id);
+  console.log(person);
 }
 
-function deletePersonById() {
-  const id = parseInt(readline.question("Enter ID to delete: "));
-  const lenBefore = people.length;
-  people = people.filter(p => p.id !== id);
-  if (lenBefore === people.length) console.log("❌ Person not found.");
-  else console.log("✅ Person deleted.");
-}
-
-function deleteAllPeople() {
+if (choice == 3) {
   people = [];
-  console.log("✅ All people deleted.");
+  console.log("All deleted");
 }
 
-function viewFullNameAndCity() {
-  if (people.length === 0) {
-    console.log("No people found.");
-    return;
-  }
-  console.log("\nFull Name | City");
-  console.log("----------------");
+if (choice == 4) {
+  const id = readline.questionInt("Enter ID: ");
+  people = people.filter(p => p.id !== id);
+  console.log("Deleted");
+}
+
+if (choice == 5) {
   people.forEach(p => {
-    console.log(`${p.firstName} ${p.lastName}`.padEnd(15) + ` | ${p.city}`);
+    console.log(`${p.firstName} ${p.lastName} - ${p.city}`);
   });
 }
-
-// ----------- Main Menu -----------
-function mainMenu() {
-  while (true) {
-    console.log("\n🌍 People Manager");
-    console.log("1. View All People");
-    console.log("2. View Person by ID");
-    console.log("3. Add Person");
-    console.log("4. Delete Person by ID");
-    console.log("5. Delete All People");
-    console.log("6. View Full Name & City");
-    console.log("0. Exit");
-
-    const choice = readline.questionInt("Enter choice: ");
-
-    switch(choice) {
-      case 1: viewAllPeople(); break;
-      case 2: viewPersonById(); break;
-      case 3: addPerson(); break;
-      case 4: deletePersonById(); break;
-      case 5: deleteAllPeople(); break;
-      case 6: viewFullNameAndCity(); break;
-      case 0: console.log("Goodbye! 👋"); return;
-      default: console.log("❌ Invalid choice.");
-    }
-  }
-}
-
-// ----------- Run -----------
-mainMenu();

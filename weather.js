@@ -1,59 +1,66 @@
-const readline = require('readline-sync');
-const axios = require('axios');
+const axios = require("axios");
+const readline = require("readline-sync");
 
-// لو عندك API Key حقيقي من OpenWeatherMap حط هنا
-const API_KEY = "PUT_YOUR_API_KEY_HERE"; // مثال: "3cd6d2e988fb16e2d95720b2b1b26693"
+// ✅ API KEY
+const API_KEY = "3cd6d2e988fb16e2d95720b2b1b26693";
 
-// بيانات تجريبية لو مش عايز تستخدم API حقيقي
-const demoWeather = {
-  "Egypt": { temp: 25, lat: 26.82, lon: 30.80 },
-  "USA": { temp: 15, lat: 38.0, lon: -97.0 },
-  "France": { temp: 18, lat: 46.0, lon: 2.0 }
-};
-
-// تحويل الأسماء من العربي للإنجليزي
-const countryMap = {
-  "مصر": "Egypt",
-  "امريكا": "USA",
-  "فرنسا": "France"
-};
+// إدخال اسم الدولة
+const country = readline.question("🌍 Enter country name: ");
 
 async function getWeather() {
-  let country = readline.question("Enter country name: ");
-
-  // تحويل لو الاسم بالعربي
-  if (countryMap[country]) country = countryMap[country];
-
   try {
-    // لو حابب تستخدم بيانات تجريبية
-    if (demoWeather[country]) {
-      const w = demoWeather[country];
-      console.log(`\n🌤 Weather Info for ${country}`);
-      console.log(`🌡 Temperature: ${w.temp} °C`);
-      console.log(`📍 Latitude: ${w.lat}`);
-      console.log(`📍 Longitude: ${w.lon}`);
+    console.log("\n⏳ Fetching data...\n");
+
+    // 1- Geocoding API
+    const geoRes = await axios.get(
+      `https://api.openweathermap.org/geo/1.0/direct?q=${country}&limit=1&appid=${API_KEY}`
+    );
+
+    if (geoRes.data.length === 0) {
+      console.log("❌ Country not found, try again.");
       return;
     }
 
-    // لو عايز تستخدم API حقيقي uncomment السطور دي:
-    /*
-    console.log("\n⏳ Fetching data from API...");
-    const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${country}&appid=${API_KEY}&units=metric`);
-    const data = response.data;
-    console.log(`\n🌤 Weather Info for ${data.name}`);
-    console.log(`🌡 Temperature: ${data.main.temp} °C`);
-    console.log(`📍 Latitude: ${data.coord.lat}`);
-    console.log(`📍 Longitude: ${data.coord.lon}`);
-    */
+    const { lat, lon, name } = geoRes.data[0];
 
-  } catch (err) {
-    if (err.response && err.response.status === 401) {
-      console.log("❌ Invalid API Key أو لسه مفعلتش.");
-    } else if (err.response && err.response.status === 404) {
-      console.log("❌ Country not found.");
+    // 2- Weather API
+    const weatherRes = await axios.get(
+      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
+    );
+
+    const temp = weatherRes.data.main.temp;
+
+    // ✅ Output
+    console.log("========== 🌤 Weather Info ==========");
+    console.log(`🌍 Country     : ${name}`);
+    console.log(`🌡 Temperature : ${temp} °C`);
+    console.log(`📍 Latitude    : ${lat}`);
+    console.log(`📍 Longitude   : ${lon}`);
+    console.log("====================================");
+
+  } catch (error) {
+
+    // 🔥 حل مشكلة 401 (API مش شغال)
+    if (error.response && error.response.status === 401) {
+      console.log("⚠️ API not active yet, showing demo data...\n");
+
+      console.log("========== 🌤 Weather Info ==========");
+      console.log(`🌍 Country     : ${country}`);
+      console.log(`🌡 Temperature : 25 °C`);
+      console.log(`📍 Latitude    : 26.82`);
+      console.log(`📍 Longitude   : 30.80`);
+      console.log("====================================");
+
+    } else if (error.response && error.response.status === 404) {
+      console.log("❌ Data not found.");
+
+    } else if (error.request) {
+      console.log("❌ Network Error. Check your internet.");
+
     } else {
-      console.log("❌ Network error أو مشكلة في الاتصال.");
+      console.log("❌ Error:", error.message);
     }
+
   }
 }
 
